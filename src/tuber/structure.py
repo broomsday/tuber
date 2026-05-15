@@ -19,7 +19,7 @@ def build_atom_array(
     if elements is None:
         element_array = np.full(atom_count, "C", dtype="U2")
     else:
-        element_array = np.asarray(list(elements), dtype="U2")
+        element_array = np.char.upper(np.asarray(list(elements), dtype="U2"))
         if element_array.shape != (atom_count,):
             raise ValueError("elements must have one entry per coordinate")
 
@@ -30,7 +30,7 @@ def build_atom_array(
     atom_array.ins_code = np.full(atom_count, "", dtype="U1")
     atom_array.res_name = np.full(atom_count, "CNT", dtype="U5")
     atom_array.hetero = np.ones(atom_count, dtype=bool)
-    atom_array.atom_name = np.full(atom_count, "C", dtype="U6")
+    atom_array.atom_name = element_array.astype("U6", copy=False)
     atom_array.element = element_array
     atom_array.set_annotation("atom_id", np.arange(1, atom_count + 1, dtype=int))
     atom_array.set_annotation("occupancy", np.ones(atom_count, dtype=float))

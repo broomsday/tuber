@@ -247,11 +247,39 @@ Delivered:
 
 ## Future Extensions
 
-These are explicitly out of scope for the first version:
+Completed extension:
 
-- hydrogen termination
+- hydrogen termination, delivered in Milestone 2 on 2026-05-14
+
+Remaining items explicitly out of scope for the first version:
+
 - capped nanotubes
 - periodic crystal export
 - multi-wall nanotubes
 - defect insertion or doping
 - alternate coordinate conventions beyond simple axial centering
+
+## Milestone 2: Optional Hydrogen Termination
+
+The next implementation milestone extends the first version with optional end
+termination while preserving the carbon-only default behavior.
+
+Requirements:
+
+- add optional hydrogen termination for finite tube ends
+- add one hydrogen per dangling graphene bond at the open ends
+- keep carbon-only output as the default behavior
+- expose the feature through the CLI
+- ensure PDB and CIF export work for mixed `C`/`H` structures
+- add tests covering representative armchair, zigzag, and chiral tubes
+
+Status on 2026-05-14: complete.
+
+Delivered:
+
+- optional `--hydrogen-terminate` CLI flag
+- optional `--hydrogen-bond-length` override
+- deterministic hydrogen placement derived from missing graphene neighbors in
+  the unwrapped sheet
+- mixed-element `AtomArray` support for `C` and `H`
+- geometry, CLI, structure, and writer coverage for hydrogen-terminated output

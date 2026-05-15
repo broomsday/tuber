@@ -75,12 +75,62 @@ def test_center_z_controls_axial_placement() -> None:
 
 
 @pytest.mark.parametrize(
+    ("n", "m", "units", "expected_hydrogen_count"),
+    [
+        (3, 3, 2, 12),
+        (5, 0, 1, 20),
+        (6, 4, 1, 24),
+    ],
+)
+def test_hydrogen_termination_adds_expected_end_hydrogens(
+    n: int,
+    m: int,
+    units: int,
+    expected_hydrogen_count: int,
+) -> None:
+    geometry = generate_nanotube(
+        n=n,
+        m=m,
+        units=units,
+        hydrogen_terminate=True,
+        center_z=False,
+    )
+
+    assert geometry.carbon_count == geometry.unit_cell_atom_count * units
+    assert geometry.hydrogen_count == expected_hydrogen_count
+    assert geometry.atom_count == geometry.carbon_count + geometry.hydrogen_count
+    assert geometry.hydrogen_terminated is True
+
+    carbon_coordinates = geometry.coordinates[geometry.elements == "C"]
+    hydrogen_coordinates = geometry.coordinates[geometry.elements == "H"]
+    carbon_hydrogen_distances = np.linalg.norm(
+        hydrogen_coordinates[:, np.newaxis, :] - carbon_coordinates[np.newaxis, :, :],
+        axis=2,
+    )
+
+    assert np.allclose(np.min(carbon_hydrogen_distances, axis=1), 1.09, atol=1e-10)
+
+
+def test_default_generation_remains_carbon_only() -> None:
+    geometry = generate_nanotube(n=3, m=3, units=2)
+
+    assert geometry.hydrogen_count == 0
+    assert geometry.carbon_count == geometry.atom_count
+    assert geometry.hydrogen_terminated is False
+    assert np.array_equal(np.unique(geometry.elements), np.array(["C"]))
+
+
+@pytest.mark.parametrize(
     ("kwargs", "message"),
     [
         ({"n": -1, "m": 1, "units": 1}, "n must be non-negative"),
         ({"n": 0, "m": 0, "units": 1}, "cannot both be zero"),
         ({"n": 1, "m": 1, "units": 0}, "units must be at least 1"),
         ({"n": 1, "m": 1, "units": 1, "bond_length": 0.0}, "bond_length must be positive"),
+        (
+            {"n": 1, "m": 1, "units": 1, "hydrogen_terminate": True, "hydrogen_bond_length": 0.0},
+            "hydrogen_bond_length must be positive",
+        ),
     ],
 )
 def test_invalid_inputs_raise_value_error(kwargs: dict[str, int | float], message: str) -> None:

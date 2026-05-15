@@ -1,11 +1,14 @@
 # Tuber
 
-`tuber` generates finite, open-ended, carbon-only carbon nanotube structures
-from chiral indices `(n, m)` and a tube length expressed in nanotube
-translational unit cells.
+`tuber` generates finite, open-ended carbon nanotube structures from chiral
+indices `(n, m)` and a tube length expressed in nanotube translational unit
+cells.
 
 The generated coordinates are aligned so the nanotube axis is parallel to the
 global `Z` axis.
+
+By default the output is carbon-only. Optional terminal hydrogen termination is
+also supported.
 
 ## Installation
 
@@ -33,9 +36,16 @@ Generate a nanotube and write it as CIF:
 tuber generate --n 6 --m 4 --units 3 --format cif --output cnt_6_4_3.cif
 ```
 
+Generate a hydrogen-terminated nanotube:
+
+```bash
+tuber generate --n 5 --m 0 --units 1 --format cif --output cnt_5_0_1_h.cif --hydrogen-terminate
+```
+
 ## Notes
 
 - `units` means nanotube translational unit cells along the tube axis, not
   rings or arbitrary axial repeats.
 - The output is finite and non-periodic.
-- The current scope is limited to open-ended, carbon-only nanotubes.
+- The default output is open-ended and carbon-only; `--hydrogen-terminate`
+  adds terminal hydrogens to saturate dangling graphene bonds at the tube ends.

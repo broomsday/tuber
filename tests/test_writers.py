@@ -1,3 +1,4 @@
+import numpy as np
 import biotite.structure.io.pdb as pdb
 import biotite.structure.io.pdbx as pdbx
 import pytest
@@ -40,3 +41,20 @@ def test_write_structure_rejects_suffix_mismatch(tmp_path) -> None:
     atom_array = _make_atom_array()
     with pytest.raises(ValueError, match="does not match requested format"):
         write_structure(atom_array, tmp_path / "tube.cif", "pdb")
+
+
+def test_write_structure_round_trips_hydrogen_terminated_elements(tmp_path) -> None:
+    geometry = generate_nanotube(n=3, m=3, units=2, hydrogen_terminate=True)
+    atom_array = build_atom_array(geometry.coordinates, geometry.elements)
+    output_path = tmp_path / "tube.cif"
+
+    write_structure(atom_array, output_path, "cif")
+
+    loaded = pdbx.get_structure(pdbx.CIFFile.read(str(output_path)), model=1)
+    unique_elements, counts = np.unique(loaded.element, return_counts=True)
+
+    assert output_path.exists()
+    assert dict(zip(unique_elements.tolist(), counts.tolist(), strict=True)) == {
+        "C": geometry.carbon_count,
+        "H": geometry.hydrogen_count,
+    }

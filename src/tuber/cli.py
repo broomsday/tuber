@@ -55,6 +55,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Center the final tube around z = 0",
     )
     generate_parser.add_argument(
+        "--hydrogen-terminate",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Add one terminal hydrogen to each undercoordinated end carbon",
+    )
+    generate_parser.add_argument(
+        "--hydrogen-bond-length",
+        type=float,
+        default=1.09,
+        help="Carbon-hydrogen bond length in angstroms when hydrogen termination is enabled",
+    )
+    generate_parser.add_argument(
         "--overwrite",
         action="store_true",
         help="Allow overwriting an existing output file",
@@ -65,7 +77,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
-    args = parser.parse_args(argv)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as error:
+        return int(error.code)
 
     if args.command == "generate":
         return _run_generate(args)
@@ -82,6 +97,8 @@ def _run_generate(args: argparse.Namespace) -> int:
             units=args.units,
             bond_length=args.bond_length,
             center_z=args.center_z,
+            hydrogen_terminate=args.hydrogen_terminate,
+            hydrogen_bond_length=args.hydrogen_bond_length,
         )
 
         from .structure import build_atom_array
@@ -104,6 +121,8 @@ def _run_generate(args: argparse.Namespace) -> int:
     print(
         "Wrote "
         f"{geometry.atom_count} atoms; "
+        f"C={geometry.carbon_count}; "
+        f"H={geometry.hydrogen_count}; "
         f"radius={geometry.radius:.3f} A; "
         f"total_length={geometry.total_length:.3f} A; "
         f"output={output_path}"
