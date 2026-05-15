@@ -13,33 +13,39 @@ also supported.
 ## Installation
 
 ```bash
-python -m pip install -e .
+uv sync
 ```
 
 For development and tests:
 
 ```bash
-python -m pip install -e .[dev]
+uv sync --extra dev
 ```
 
 ## Usage
 
+Inspect the full CLI from the project root:
+
+```bash
+uv run tuber --help
+```
+
 Generate a nanotube and write it as PDB:
 
 ```bash
-tuber generate --n 10 --m 5 --units 8 --format pdb --output cnt_10_5_8.pdb
+uv run tuber --n 10 --m 5 --units 8 --format pdb --output cnt_10_5_8.pdb
 ```
 
 Generate a nanotube and write it as CIF:
 
 ```bash
-tuber generate --n 6 --m 4 --units 3 --format cif --output cnt_6_4_3.cif
+uv run tuber --n 6 --m 4 --units 3 --format cif --output cnt_6_4_3.cif
 ```
 
 Generate a hydrogen-terminated nanotube:
 
 ```bash
-tuber generate --n 5 --m 0 --units 1 --format cif --output cnt_5_0_1_h.cif --hydrogen-terminate
+uv run tuber --n 5 --m 0 --units 1 --format cif --output cnt_5_0_1_h.cif --hydrogen-terminate
 ```
 
 ## Notes

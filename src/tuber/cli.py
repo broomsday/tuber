@@ -5,6 +5,10 @@ from collections.abc import Sequence
 from pathlib import Path
 import sys
 
+if __name__ == "__main__" and __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    __package__ = "tuber"
+
 from .geometry import generate_nanotube
 
 
@@ -14,59 +18,54 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Generate finite carbon nanotube structures aligned to the global Z axis."
         ),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    generate_parser = subparsers.add_parser(
-        "generate",
-        help="Generate a finite carbon nanotube",
-    )
-    generate_parser.add_argument("--n", type=int, required=True, help="First chiral index")
-    generate_parser.add_argument("--m", type=int, required=True, help="Second chiral index")
-    generate_parser.add_argument(
+    parser.add_argument("--n", type=int, required=True, help="First chiral index")
+    parser.add_argument("--m", type=int, required=True, help="Second chiral index")
+    parser.add_argument(
         "--units",
         type=int,
         required=True,
         help="Number of nanotube translational unit cells along Z",
     )
-    generate_parser.add_argument(
+    parser.add_argument(
         "--format",
         dest="file_format",
         choices=("pdb", "cif"),
         required=True,
         help="Output format",
     )
-    generate_parser.add_argument(
+    parser.add_argument(
         "--output",
         type=Path,
         required=True,
         help="Destination file path",
     )
-    generate_parser.add_argument(
+    parser.add_argument(
         "--bond-length",
         type=float,
         default=1.42,
         help="Carbon-carbon bond length in angstroms",
     )
-    generate_parser.add_argument(
+    parser.add_argument(
         "--center-z",
         action=argparse.BooleanOptionalAction,
         default=True,
         help="Center the final tube around z = 0",
     )
-    generate_parser.add_argument(
+    parser.add_argument(
         "--hydrogen-terminate",
         action=argparse.BooleanOptionalAction,
         default=False,
         help="Add one terminal hydrogen to each undercoordinated end carbon",
     )
-    generate_parser.add_argument(
+    parser.add_argument(
         "--hydrogen-bond-length",
         type=float,
         default=1.09,
         help="Carbon-hydrogen bond length in angstroms when hydrogen termination is enabled",
     )
-    generate_parser.add_argument(
+    parser.add_argument(
         "--overwrite",
         action="store_true",
         help="Allow overwriting an existing output file",
@@ -75,18 +74,21 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _normalize_argv(argv: Sequence[str] | None) -> list[str]:
+    normalized_argv = list(sys.argv[1:] if argv is None else argv)
+    if normalized_argv and normalized_argv[0] == "generate":
+        return normalized_argv[1:]
+    return normalized_argv
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
+    normalized_argv = _normalize_argv(argv)
     try:
-        args = parser.parse_args(argv)
+        args = parser.parse_args(normalized_argv)
     except SystemExit as error:
         return int(error.code)
-
-    if args.command == "generate":
-        return _run_generate(args)
-
-    parser.error(f"Unknown command: {args.command}")
-    return 2
+    return _run_generate(args)
 
 
 def _run_generate(args: argparse.Namespace) -> int:
@@ -128,3 +130,7 @@ def _run_generate(args: argparse.Namespace) -> int:
         f"output={output_path}"
     )
     return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

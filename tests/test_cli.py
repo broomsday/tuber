@@ -1,3 +1,7 @@
+from pathlib import Path
+import subprocess
+import sys
+
 import pytest
 
 from tuber.cli import main
@@ -9,6 +13,16 @@ def test_cli_help_returns_zero(capsys) -> None:
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "usage:" in captured.out
+    assert "--n" in captured.out
+    assert "--format" in captured.out
+
+
+def test_cli_accepts_legacy_generate_alias(capsys) -> None:
+    exit_code = main(["generate", "--help"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "--n" in captured.out
 
 
 def test_cli_rejects_invalid_format_choice(capsys, tmp_path) -> None:
@@ -16,7 +30,6 @@ def test_cli_rejects_invalid_format_choice(capsys, tmp_path) -> None:
 
     exit_code = main(
         [
-            "generate",
             "--n",
             "3",
             "--m",
@@ -39,7 +52,6 @@ def test_cli_rejects_invalid_chiral_indices(capsys, tmp_path) -> None:
     output_path = tmp_path / "invalid.pdb"
     exit_code = main(
         [
-            "generate",
             "--n",
             "0",
             "--m",
@@ -64,7 +76,6 @@ def test_cli_generate_writes_output_file(tmp_path, capsys) -> None:
 
     exit_code = main(
         [
-            "generate",
             "--n",
             "3",
             "--m",
@@ -93,7 +104,6 @@ def test_cli_requires_overwrite_for_existing_file(tmp_path, capsys) -> None:
 
     exit_code = main(
         [
-            "generate",
             "--n",
             "3",
             "--m",
@@ -118,7 +128,6 @@ def test_cli_generate_can_add_terminal_hydrogens(tmp_path, capsys) -> None:
 
     exit_code = main(
         [
-            "generate",
             "--n",
             "5",
             "--m",
@@ -145,7 +154,6 @@ def test_cli_rejects_invalid_hydrogen_bond_length(tmp_path, capsys) -> None:
 
     exit_code = main(
         [
-            "generate",
             "--n",
             "3",
             "--m",
@@ -165,3 +173,17 @@ def test_cli_rejects_invalid_hydrogen_bond_length(tmp_path, capsys) -> None:
     captured = capsys.readouterr()
     assert exit_code == 2
     assert "hydrogen_bond_length must be positive" in captured.err
+
+
+def test_cli_script_runs_from_repo_root() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, "src/tuber/cli.py", "--help"],
+        capture_output=True,
+        cwd=repo_root,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert "--n" in result.stdout
