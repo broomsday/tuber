@@ -1,0 +1,79 @@
+import pytest
+
+from tuber.cli import main
+
+
+def test_cli_rejects_invalid_chiral_indices(capsys, tmp_path) -> None:
+    output_path = tmp_path / "invalid.pdb"
+    exit_code = main(
+        [
+            "generate",
+            "--n",
+            "0",
+            "--m",
+            "0",
+            "--units",
+            "1",
+            "--format",
+            "pdb",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "cannot both be zero" in captured.err
+
+
+def test_cli_generate_writes_output_file(tmp_path, capsys) -> None:
+    pytest.importorskip("biotite")
+    output_path = tmp_path / "tube.pdb"
+
+    exit_code = main(
+        [
+            "generate",
+            "--n",
+            "3",
+            "--m",
+            "3",
+            "--units",
+            "2",
+            "--format",
+            "pdb",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert output_path.exists()
+    assert "Wrote 24 atoms" in captured.out
+    assert str(output_path) in captured.out
+
+
+def test_cli_requires_overwrite_for_existing_file(tmp_path, capsys) -> None:
+    pytest.importorskip("biotite")
+    output_path = tmp_path / "tube.pdb"
+    output_path.write_text("existing file", encoding="utf-8")
+
+    exit_code = main(
+        [
+            "generate",
+            "--n",
+            "3",
+            "--m",
+            "3",
+            "--units",
+            "1",
+            "--format",
+            "pdb",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "already exists" in captured.err

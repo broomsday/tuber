@@ -1,0 +1,2 @@
+[console_scripts]
+tuber = tuber.cli:main
